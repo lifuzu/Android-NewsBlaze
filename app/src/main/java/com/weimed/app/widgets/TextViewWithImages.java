@@ -1,21 +1,35 @@
 package com.weimed.app.widgets;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.text.Spannable;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.SimpleImageLoadingListener;
+import com.weimed.app.newsblaze.ApplicationClass;
 import com.weimed.app.newsblaze.R;
 
 /**
@@ -43,9 +57,9 @@ public class TextViewWithImages extends TextView {
     private static boolean addImages(Context context, Spannable spannable) {
         //final String IMAGE_PATTERN = "([^\\w]+\\.(?i)(bmp|jpg|gif|png)$)";
         //final String IMAGE_PATTERN = "(.+?)";
-        final String IMAGE_PATTERN = "(http.*\\.(?i)(jpg|png|gif|bmp)?)";
+        final String IMAGE_PATTERN = "(http.*\\.(?i)(jpg|jpeg|png|gif|bmp)?)";
         //Pattern refImg = Pattern.compile("\\Q[img src=\\E" + IMAGE_PATTERN + "\\Q/]\\E");
-        Pattern refImg = Pattern.compile("\\Q\\E" + IMAGE_PATTERN + "\\Q\\E");
+        Pattern refImg = Pattern.compile("\\Q![](\\E" + IMAGE_PATTERN + "\\Q)\\E");
         boolean hasChanges = false;
 
         Matcher matcher = refImg.matcher(spannable);
@@ -69,6 +83,35 @@ public class TextViewWithImages extends TextView {
 //                bitmap = BitmapFactory.decodeStream(context.getResources().getAssets().open(resname));
 //            } catch (IOException e) {}
             //bitmap = getBitmapFromURL(resname);
+            Uri imageUri = Uri.parse(resname);
+//            try {
+//                bitmap = MediaStore.Images.Media.getBitmap(ApplicationClass.getAppContext().getContentResolver(), imageUri);
+//            } catch (FileNotFoundException e) {
+//                Log.i("RESNAME", e.getMessage());
+//            } catch (IOException e) {
+//                Log.i("RESNAME", e.getMessage());
+//            }
+            //Drawable d = LoadImageFromWebOperations(resname);
+            //bitmap = drawableToBitmap(LoadImageFromWebOperations(resname));
+//            bitmap = ImageLoader.getInstance().loadImageSync(resname);
+//            try {
+//                URL url = new URL(resname);
+//                bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+//            } catch (MalformedURLException e) {}
+//            catch (IOException e) {}
+            // Load image, decode it to Bitmap and return Bitmap to callback
+//            ImageLoader.getInstance().loadImage(resname, new SimpleImageLoadingListener() {
+//                @Override
+//                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+//                    // Do whatever you want with Bitmap
+//                    hasChanges = true;
+//                    spannable.setSpan(  new ImageSpan(context, bitmap),
+//                            matcher.start(),
+//                            matcher.end(),
+//                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+//                    );
+//                }
+//            });
             if (set) {
                 hasChanges = true;
                 spannable.setSpan(  new ImageSpan(context, bitmap),
@@ -119,4 +162,52 @@ public class TextViewWithImages extends TextView {
 
         return resizedBitmap;
     }
+
+    public static Drawable LoadImageFromWebOperations(String url) {
+        try {
+            InputStream is = (InputStream) new URL(url).getContent();
+            Drawable d = Drawable.createFromStream(is, "src name");
+            return d;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable)drawable).getBitmap();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public ImageDownloader(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String url = urls[0];
+            Bitmap mIcon = null;
+            try {
+                InputStream in = new java.net.URL(url).openStream();
+                mIcon = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+            }
+            return mIcon;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
+    }
+    //new ImageDownloader(icon).execute(contactArray.get(position).getImageURL());
 }
