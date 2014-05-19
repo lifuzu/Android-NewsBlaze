@@ -200,7 +200,7 @@ public class MainActivity extends ListActivity
                 PROJECTION,                     // Projection
                 null,                           // Selection
                 null,                           // Selection args
-                null);                          // Sort
+                NewsContract.Entry.COLUMN_PUBLISHEDAT +" desc"); // Sort
     }
 
     /**

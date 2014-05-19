@@ -231,7 +231,7 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
         final JSONArray entries = json.getJSONArray("rows");
         for (int i = 0; i < json.getInt("total_rows"); i++) {
             JSONObject e = entries.getJSONObject(i).getJSONObject("value");
-            entryMap.put(String.valueOf(i), e);
+            entryMap.put(e.getString("_id"), e);
         }
 
         // Get list of all items
@@ -266,46 +266,46 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
             updatedat = c.getString(COLUMN_UPDATEDAT);
             publishedat = c.getString(COLUMN_PUBLISHEDAT);
             JSONObject match = entryMap.get(entryId);
-            if (match != null) {
+//            if (match != null) {
                 // Entry exists. Remove from entry map to prevent insert later.
-                entryMap.remove(entryId);
+//                entryMap.remove(entryId);
                 // Check to see if the entry needs to be updated
                 // How to know update local or remote? updatedAt! which is newer, update another.
-                Uri existingUri = NewsContract.Entry.CONTENT_URI.buildUpon()
-                                              .appendPath(Integer.toString(id)).build();
-                if ((match.getString("title") != null && !match.getString("title").equals(title)) ||
-                    (match.getString("content") != null && !match.getString("content").equals(content)) ||
-                    (match.getString("publisher") != null && !match.getString("publisher").equals(publisher)) ||
-                    (match.getString("picurl") != null && !match.getString("picurl").equals(picurl)) ||
-                    (match.getString("originalurl") != null && !match.getString("originalurl").equals(originalurl)) ||
-                    (match.getString("createdat") != null && !match.getString("createdat").equals(createdat)) ||
-                    (match.getString("updatedat") != null && !match.getString("updatedat").equals(updatedat)) ||
-                    (match.getString("publishedat") != null && !match.getString("publishedat").equals(publishedat))
-                   ) {
-                    // Update existing record
-                    Log.i(TAG, "Scheduling update: " + existingUri);
-                    batch.add(ContentProviderOperation.newUpdate(existingUri)
-                         .withValue(NewsContract.Entry.COLUMN_TITLE, title)
-                         .withValue(NewsContract.Entry.COLUMN_CONTENT, content)
-                         .withValue(NewsContract.Entry.COLUMN_PUBLISHER, publisher)
-                         .withValue(NewsContract.Entry.COLUMN_PICURL, picurl)
-                         .withValue(NewsContract.Entry.COLUMN_ORIGINALURL, originalurl)
-                         .withValue(NewsContract.Entry.COLUMN_CREATEDAT, createdat)
-                         .withValue(NewsContract.Entry.COLUMN_UPDATEDAT, updatedat)
-                         .withValue(NewsContract.Entry.COLUMN_PUBLISHEDAT, publishedat)
-                         .build());
-                    syncResult.stats.numUpdates++;
-                } else {
-                    Log.i(TAG, "No action: " + existingUri);
-                }
-            } else {
+//                Uri existingUri = NewsContract.Entry.CONTENT_URI.buildUpon()
+//                                              .appendPath(Integer.toString(id)).build();
+//                if ((match.getString("title") != null && !match.getString("title").equals(title)) ||
+//                    (match.getString("content") != null && !match.getString("content").equals(content)) ||
+//                    (match.getString("publisher") != null && !match.getString("publisher").equals(publisher)) ||
+//                    (match.getString("picurl") != null && !match.getString("picurl").equals(picurl)) ||
+//                    (match.getString("originalurl") != null && !match.getString("originalurl").equals(originalurl)) ||
+//                    (match.getString("createdat") != null && !match.getString("createdat").equals(createdat)) ||
+//                    (match.getString("updatedat") != null && !match.getString("updatedat").equals(updatedat)) ||
+//                    (match.getString("publishedat") != null && !match.getString("publishedat").equals(publishedat))
+//                   ) {
+//                    // Update existing record
+//                    Log.i(TAG, "Scheduling update: " + existingUri);
+//                    batch.add(ContentProviderOperation.newUpdate(existingUri)
+//                         .withValue(NewsContract.Entry.COLUMN_TITLE, title)
+//                         .withValue(NewsContract.Entry.COLUMN_CONTENT, content)
+//                         .withValue(NewsContract.Entry.COLUMN_PUBLISHER, publisher)
+//                         .withValue(NewsContract.Entry.COLUMN_PICURL, picurl)
+//                         .withValue(NewsContract.Entry.COLUMN_ORIGINALURL, originalurl)
+//                         .withValue(NewsContract.Entry.COLUMN_CREATEDAT, createdat)
+//                         .withValue(NewsContract.Entry.COLUMN_UPDATEDAT, updatedat)
+//                         .withValue(NewsContract.Entry.COLUMN_PUBLISHEDAT, publishedat)
+//                         .build());
+//                    syncResult.stats.numUpdates++;
+//                } else {
+//                    Log.i(TAG, "No action: " + existingUri);
+//                }
+//            } else {
                 // Entry doesn't exist. Remove it from the database.
                 Uri deleteUri = NewsContract.Entry.CONTENT_URI.buildUpon()
                                             .appendPath(Integer.toString(id)).build();
                 Log.i(TAG, "Scheduling delete: " + deleteUri);
                 batch.add(ContentProviderOperation.newDelete(deleteUri).build());
                 syncResult.stats.numDeletes++;
-            }
+//            }
         }
         c.close();
 

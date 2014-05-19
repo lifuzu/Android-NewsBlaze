@@ -2,13 +2,16 @@ package com.weimed.app.newsblaze;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +25,14 @@ import in.uncod.android.bypass.Bypass;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Locale;
 
 import android.text.Html;
-//import com.commonsware.cwac.anddown.AndDown;
+import android.text.Html.ImageGetter;
+import com.commonsware.cwac.anddown.AndDown;
+import com.weimed.app.utils.URLImageParser;
 import com.weimed.app.widgets.TextViewWithImages;
 
 public class ArticleActivity extends FragmentActivity /*implements ActionBar.TabListener*/ {
@@ -244,7 +251,8 @@ public class ArticleActivity extends FragmentActivity /*implements ActionBar.Tab
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main_dummy, container, false);
-            TextViewWithImages dummyTextView = (TextViewWithImages) rootView.findViewById(R.id.section_label);
+            //TextViewWithImages dummyTextView = (TextViewWithImages) rootView.findViewById(R.id.section_label);
+            TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
 
             String markdownString = "###markdown!!!";
 //            String fileName = getArguments().getString(ARG_SECTION_FILENAME);
@@ -255,18 +263,24 @@ public class ArticleActivity extends FragmentActivity /*implements ActionBar.Tab
 //            }
             markdownString = getArguments().getString(ARG_SECTION_CONTENT);
 
-            Bypass bypass = new Bypass();
-            CharSequence string = bypass.markdownToSpannable(markdownString);
+            //Bypass bypass = new Bypass();
+            //CharSequence string = bypass.markdownToSpannable(markdownString);
 
-            //AndDown converter=new AndDown();
-            //String cooked=converter.markdownToHtml(markdownString);
+            AndDown converter=new AndDown();
+            String cooked=converter.markdownToHtml(markdownString);
             //Log.i(ARG_SECTION_NUMBER, cooked);
-            //CharSequence string=Html.fromHtml(cooked);
+            //CharSequence string=Html.fromHtml(cooked, getImageHTML(), null);
+            URLImageParser p = new URLImageParser(dummyTextView, getActivity());
+            Spanned string = Html.fromHtml(cooked, p, null);
 
             //dummyTextView.loadData(cooked, "text/html", "UTF-8");
             dummyTextView.setText(string);
-            dummyTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            dummyTextView.setVerticalScrollBarEnabled(true);
+            dummyTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
+
+            //dummyTextView.setMovementMethod(LinkMovementMethod.getInstance());
             //dummyTextView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+
             return rootView;
         }
 
@@ -293,6 +307,22 @@ public class ArticleActivity extends FragmentActivity /*implements ActionBar.Tab
 
             //return the output stream as a String
             return oS.toString();
+        }
+
+        public ImageGetter getImageHTML() {
+            ImageGetter imageGetter = new ImageGetter() {
+                public Drawable getDrawable(String source) {
+                    try {
+                        Drawable drawable = Drawable.createFromStream(new URL(source).openStream(), "src name");
+                        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight());
+                        return drawable;
+                    } catch(IOException exception) {
+                        Log.v("IOException",exception.getMessage());
+                        return null;
+                    }
+                }
+            };
+            return imageGetter;
         }
     }
 
