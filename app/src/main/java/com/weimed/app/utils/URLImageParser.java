@@ -1,11 +1,16 @@
 package com.weimed.app.utils;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.text.Html;
+import android.util.Log;
+import android.util.LruCache;
 import android.view.View;
 import android.widget.TextView;
+
+import com.weimed.app.newsblaze.ApplicationClass;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -37,13 +42,14 @@ public class URLImageParser implements Html.ImageGetter {
 
         // get the actual source
         ImageGetterAsyncTask asyncTask =
-                new ImageGetterAsyncTask( urlDrawable);
+                new ImageGetterAsyncTask(urlDrawable);
 
         asyncTask.execute(source);
 
         // return reference to URLDrawable where I will change with actual image from
         // the src tag
         return urlDrawable;
+
     }
 
     public class ImageGetterAsyncTask extends AsyncTask<String, Void, Drawable> {
@@ -82,9 +88,16 @@ public class URLImageParser implements Html.ImageGetter {
          * @return
          */
         public Drawable fetchDrawable(String urlString) {
+            // if hitting mem cache
+            Drawable drawable = ApplicationClass.getBitmapFromMemCache(urlString);
+            if (drawable != null) {
+                return drawable;
+            }
+            Log.d(this.getClass().getSimpleName(), "image url:" + urlString);
             try {
                 InputStream is = fetch(urlString);
-                Drawable drawable = Drawable.createFromStream(is, "src");
+                drawable = Drawable.createFromStream(is, "src");
+                ApplicationClass.addBitmapToMemoryCache(urlString, drawable);
                 drawable.setBounds(0, 0, 0 + drawable.getIntrinsicWidth(), 0
                         + drawable.getIntrinsicHeight());
                 return drawable;

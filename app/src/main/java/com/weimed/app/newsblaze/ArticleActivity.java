@@ -250,6 +250,7 @@ public class ArticleActivity extends FragmentActivity /*implements ActionBar.Tab
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
+            setRetainInstance(true);
             View rootView = inflater.inflate(R.layout.fragment_main_dummy, container, false);
             //TextViewWithImages dummyTextView = (TextViewWithImages) rootView.findViewById(R.id.section_label);
             TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
