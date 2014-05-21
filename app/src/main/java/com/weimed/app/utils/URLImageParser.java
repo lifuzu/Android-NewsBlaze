@@ -1,6 +1,7 @@
 package com.weimed.app.utils;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -89,17 +90,24 @@ public class URLImageParser implements Html.ImageGetter {
          */
         public Drawable fetchDrawable(String urlString) {
             // if hitting mem cache
-            Drawable drawable = ApplicationClass.getBitmapFromMemCache(urlString);
+            BitmapDrawable drawable = ApplicationClass.getBitmapFromCache(c, urlString);
+//            if (drawable == null) {
+//                // Check disk cache in background thread
+//                drawable = ApplicationClass.getBitmapFromDiskCache(urlString);
+//            }
             if (drawable != null) {
+                drawable.setBounds(0, 0, 0 + drawable.getIntrinsicWidth(), 0
+                        + drawable.getIntrinsicHeight());
                 return drawable;
             }
             Log.d(this.getClass().getSimpleName(), "image url:" + urlString);
             try {
                 InputStream is = fetch(urlString);
-                drawable = Drawable.createFromStream(is, "src");
-                ApplicationClass.addBitmapToMemoryCache(urlString, drawable);
+                drawable = (BitmapDrawable) Drawable.createFromStream(is, "src");
+                //ApplicationClass.addBitmapToMemoryCache(urlString, drawable);
                 drawable.setBounds(0, 0, 0 + drawable.getIntrinsicWidth(), 0
                         + drawable.getIntrinsicHeight());
+                ApplicationClass.addBitmapToCache(urlString, drawable);
                 return drawable;
             } catch (Exception e) {
                 return null;

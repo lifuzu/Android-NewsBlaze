@@ -119,6 +119,13 @@ public class ArticleActivity extends FragmentActivity /*implements ActionBar.Tab
 
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
 
+        ApplicationClass.flushCacheInternal();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //ApplicationClass.closeCacheInternal();
     }
 
     /**
