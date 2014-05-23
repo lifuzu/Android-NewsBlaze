@@ -76,7 +76,8 @@ public class MainActivity extends ListActivity
     private static final String[] FROM_COLUMNS = new String[]{
             NewsContract.Entry.COLUMN_TITLE,
             NewsContract.Entry.COLUMN_PUBLISHER,
-            NewsContract.Entry.COLUMN_PUBLISHEDAT
+            NewsContract.Entry.COLUMN_PUBLISHEDAT,
+            NewsContract.Entry.COLUMN_PICURL
     };
 
     /**
@@ -85,7 +86,8 @@ public class MainActivity extends ListActivity
     private static final int[] TO_FIELDS = new int[]{
             R.id.firstLine,
             R.id.secondLine,
-            R.id.dateView
+            R.id.dateView,
+            R.id.imageView
     };
 
     /**

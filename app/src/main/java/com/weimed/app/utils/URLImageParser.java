@@ -104,10 +104,10 @@ public class URLImageParser implements Html.ImageGetter {
             try {
                 InputStream is = fetch(urlString);
                 drawable = (BitmapDrawable) Drawable.createFromStream(is, "src");
+                ApplicationClass.addBitmapToCache(urlString, drawable);
                 //ApplicationClass.addBitmapToMemoryCache(urlString, drawable);
                 drawable.setBounds(0, 0, 0 + drawable.getIntrinsicWidth(), 0
                         + drawable.getIntrinsicHeight());
-                ApplicationClass.addBitmapToCache(urlString, drawable);
                 return drawable;
             } catch (Exception e) {
                 return null;
