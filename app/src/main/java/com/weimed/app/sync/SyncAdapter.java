@@ -68,8 +68,8 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
      * URL to fetch content from during a sync.
      *
      */
-    private static final String NEWS_URL_BASE = "http://192.168.1.138:5984/news_articles";
-    private static final String NEWS_URL = NEWS_URL_BASE + "/_design/article/_view/index";
+    private static final String NEWS_URL_BASE = "http://192.168.1.70:3003/articles";
+    private static final String NEWS_URL = NEWS_URL_BASE;
 
     /**
      * Network connection timeout, in milliseconds.
@@ -221,16 +221,16 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         Log.i(TAG, "Parsing stream as JSON Array");
         final JSONObject json = JSONParser.parseJSONObject(stream);
-        Log.i(TAG, "Parsing complete. Found " + json.getInt("total_rows") + " entries");
+        Log.i(TAG, "Parsing complete. Found entries: " + json.getJSONArray("articles").length());
 
 
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
 
         // Build hash table of incoming entries
         HashMap<String, JSONObject> entryMap = new HashMap<String, JSONObject>();
-        final JSONArray entries = json.getJSONArray("rows");
-        for (int i = 0; i < json.getInt("total_rows"); i++) {
-            JSONObject e = entries.getJSONObject(i).getJSONObject("value");
+        final JSONArray entries = json.getJSONArray("articles");
+        for (int i = 0; i < entries.length(); i++) {
+            JSONObject e = entries.getJSONObject(i);
             entryMap.put(e.getString("_id"), e);
         }
 
@@ -315,13 +315,13 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
             batch.add(ContentProviderOperation.newInsert(NewsContract.Entry.CONTENT_URI)
                     .withValue(NewsContract.Entry.COLUMN_ENTRY_ID, e.getString("_id"))
                     .withValue(NewsContract.Entry.COLUMN_TITLE, e.getString("title"))
-                    .withValue(NewsContract.Entry.COLUMN_CONTENT, fetchTextFileToString(NEWS_URL_BASE + '/' + e.getString("_id") + "/content.md"))
-                    .withValue(NewsContract.Entry.COLUMN_PUBLISHER, e.getString("publisher"))
+                    .withValue(NewsContract.Entry.COLUMN_CONTENT, e.getString("content"))
+                    .withValue(NewsContract.Entry.COLUMN_PUBLISHER, e.has("publisher") ? e.getString("publisher") : null)
                     .withValue(NewsContract.Entry.COLUMN_PICURL, e.has("pic_link") ? e.getString("pic_link") : null)
                     .withValue(NewsContract.Entry.COLUMN_ORIGINALURL, e.getString("origin_link"))
-                    .withValue(NewsContract.Entry.COLUMN_CREATEDAT, e.getString("created_at"))
-                    .withValue(NewsContract.Entry.COLUMN_UPDATEDAT, e.getString("updated_at"))
-                    .withValue(NewsContract.Entry.COLUMN_PUBLISHEDAT, e.getString("publish_at"))
+//                    .withValue(NewsContract.Entry.COLUMN_CREATEDAT, e.getString("created_at"))
+//                    .withValue(NewsContract.Entry.COLUMN_UPDATEDAT, e.getString("updated_at"))
+                    .withValue(NewsContract.Entry.COLUMN_PUBLISHEDAT, e.has("publish_at") ? e.getString("publish_at") : null)
                     .build());
             syncResult.stats.numInserts++;
         }
